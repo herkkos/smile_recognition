@@ -12,9 +12,13 @@ File for using trained neural network which detects smiles
 
 import cv2
 import face_recognition
+import numpy as np
 from tensorflow.keras.models import load_model
+import time
 
-GPU_ACCELERATED = True
+
+DIM = (64, 64)
+GPU_ACCELERATED = False
 NAME = 'model'
 
 faceRecModel = 'cnn' if GPU_ACCELERATED else 'hog'
@@ -29,6 +33,8 @@ def main():
     model = loadModel(NAME)
     videoStream = cv2.VideoCapture(0)
     while(True):
+        tik = time.time()
+        
         # Read frame from video stream
         ret, frame = videoStream.read()
         
@@ -42,20 +48,35 @@ def main():
             # Determine smile or not
             top, right, bottom, left = face
             foundFace = frame[top:bottom, left:right, :]
-            prediction = round(model.predict(foundFace)[0,0])
+            resized = cv2.resize(foundFace, DIM, interpolation = cv2.INTER_AREA)
+#            resized = resized.astype(np.float32)
+#            resized /= 255.
+            resized = np.expand_dims(resized, axis=0)
+            prediction = round(model.predict(resized)[0,0])
+            
             if (prediction):
                 label = 'smile'
-                cv2.putText(frame, label)
+                cvframe = cv2.UMat(frame)
+                cv2.rectangle(cvframe, (left, top), (right, bottom), (255, 0, 0), 2)
+                cv2.putText(cvframe, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0, 200), 2)
+                frame = cv2.UMat.get(cvframe)
             else:
                 label = 'no smile'
-                cv2.putText(frame, label)
+                cvframe = cv2.UMat(frame)
+                cv2.rectangle(cvframe, (left, top), (right, bottom), (255, 0, 0), 2)
+                cv2.putText(cvframe, label, (left, top), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0, 200), 2)
+                frame = cv2.UMat.get(cvframe)
         
-        # Run smile recognition on the frame
-        prediction = model.predict(frame)
-            
-        cv2.imshow('Stream', frame)
+        # Invert colors back
+        frame = frame[:, :, ::-1]
         
-        if cv2.waitKey(0):
+        # Calculate FPS and show frame
+        tok = time.time();
+        fps = str(1 / (tok - tik + 0.001))
+        cv2.imshow("Webcam stream", frame)
+        cv2.setWindowTitle("Webcam stream", "Frames per second: {}".format(fps))
+        
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     videoStream.release()
