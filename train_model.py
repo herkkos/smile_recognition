@@ -19,7 +19,7 @@ from os import mkdir
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 #import tensorflow as tf
-from tensorflow.keras import layers, losses, models, optimizers, regularizers
+from tensorflow.keras import layers, losses, models, optimizers
 
 
 # Constants for comfort
@@ -29,7 +29,7 @@ EPOCHS = 50
 FILE = 'GENKI-4K/GENKI-4K_Labels.txt'
 FOLDER = 'GENKI-4K/files'
 GPU_ACCELERATED = True
-NAME = 'model'
+NAME = 'te'
 
 faceRecModel = 'cnn' if GPU_ACCELERATED else 'hog'
 
@@ -81,6 +81,16 @@ def saveModel(model, name):
     except:
         print("Failed to create folder for model")   
     model.save(name)
+    
+    
+#
+def saveScore(history, name):
+    loss = np.array(history.history['loss'])
+    accuracy = np.array(history.history['accuracy'])
+    val_loss = np.array(history.history['val_loss'])
+    val_accuracy = np.array(history.history['val_accuracy'])
+    data = np.stack((loss, accuracy, val_loss, val_accuracy))
+    np.savetxt(name + ".csv", data, delimiter=',')
 
 
 def main():
@@ -135,5 +145,6 @@ def main():
 
     # Save model
     saveModel(model, NAME)
+    saveScore(history, NAME)
 
 main()
