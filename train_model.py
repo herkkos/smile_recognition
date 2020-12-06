@@ -19,11 +19,11 @@ from os import mkdir
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 #import tensorflow as tf
-from tensorflow.keras import layers, losses, models, optimizers
+from tensorflow.keras import layers, losses, models, optimizers, regularizers
 
 
 # Constants for comfort
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 DIM = (64, 64)
 EPOCHS = 50
 FILE = 'GENKI-4K/GENKI-4K_Labels.txt'
@@ -90,15 +90,18 @@ def main():
     
     # Split data to training and validation(test) data
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-    
+
     # Define the model
     model = models.Sequential()
-    model.add(layers.Conv2D(32, (1, 1), activation='relu', input_shape=(64, 64, 3)))
+    model.add(layers.Conv2D(32, (3, 3), padding='same', activation='relu', input_shape=(64, 64, 3)))
     model.add(layers.MaxPooling2D((2, 2)))
-    model.add(layers.Conv2D(32, (1, 1), activation='relu'))
+    # model.add(layers.AveragePooling2D())
+    model.add(layers.Conv2D(32, (3, 3), padding='same',activation='relu'))
     model.add(layers.MaxPooling2D((2,2)))
-    model.add(layers.Conv2D(32, (1, 1), activation='relu'))
+    # model.add(layers.AveragePooling2D())
+    model.add(layers.Conv2D(32, (3, 3), padding='same',activation='relu'))
     model.add(layers.MaxPooling2D((2,2)))
+    # model.add(layers.AveragePooling2D())
     model.add(layers.Flatten())
     model.add(layers.Dense(2048, activation='relu'))
     model.add(layers.Dense(128, activation='relu'))
@@ -108,19 +111,20 @@ def main():
 
     # Define optimizer function
     # opt = optimizers.SGD(learning_rate=0.0001, momentum=0.9, nesterov=True)
-    opt = optimizers.Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=0.0000001)
-    # opt = optimizers.Adadelta(learning_rate=0.01, rho=0.9, epsilon=0.0000001)
+    # opt = optimizers.Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=0.0000001)
+    # opt = optimizers.Adam(learning_rate=0.0001, beta_1=0.95, beta_2=0.999, epsilon=0.0000001)
+    # opt = optimizers.Adadelta(learning_rate=0.1, rho=0.95, epsilon=0.0000001)
+    opt = optimizers.Adadelta(learning_rate=0.1, rho=0.95, epsilon=0.00001)
 
     # Define loss function
-    loss = losses.BinaryCrossentropy(label_smoothing=0.5)
+    loss = losses.BinaryCrossentropy(label_smoothing=0.0)
 
     # Compile the model
-    model.compile(optimizer = opt, loss=loss, metrics=['accuracy'])
+    model.compile(optimizer=opt, loss=loss, metrics=['accuracy'])
+    # model.compile(loss = "binary_crossentropy", optimizer = "adam", metrics = ["accuracy"])
 
     # Train the model
-    history = model.fit(X_train, y_train,
-              epochs=EPOCHS,
-              batch_size=BATCH_SIZE)
+    history = model.fit(X_train, y_train, validation_data = (X_test, y_test), epochs=EPOCHS, batch_size=BATCH_SIZE)
     
     # Plot accuracy after each epoch
     plt.plot(history.history['accuracy'])
@@ -133,4 +137,3 @@ def main():
     saveModel(model, NAME)
 
 main()
-
