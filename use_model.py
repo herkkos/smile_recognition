@@ -31,7 +31,7 @@ def loadModel(name):
 
 def main():
     model = loadModel(NAME)
-    videoStream = cv2.VideoCapture(0)
+    videoStream = cv2.VideoCapture("testivideo.mp4")
     while(True):
         tik = time.time()
         
@@ -42,17 +42,15 @@ def main():
         frame = frame[:, :, ::-1]
         
         # Find possible faces
-        face_locations = face_recognition.face_locations(frame, 1, model=faceRecModel)
+        face_locations = face_recognition.face_locations(frame, model=faceRecModel)
         
         for face in face_locations:
             # Determine smile or not
             top, right, bottom, left = face
             foundFace = frame[top:bottom, left:right, :]
             resized = cv2.resize(foundFace, DIM, interpolation = cv2.INTER_AREA)
-#            resized = resized.astype(np.float32)
-#            resized /= 255.
             resized = np.expand_dims(resized, axis=0)
-            prediction = round(model.predict(resized)[0,0])
+            prediction = model.predict_classes(resized)[0,0]
             
             if (prediction):
                 label = 'smile'

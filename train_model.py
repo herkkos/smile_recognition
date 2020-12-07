@@ -16,7 +16,7 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 from os import mkdir
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 #import tensorflow as tf
 from tensorflow.keras import layers, losses, models, optimizers
@@ -124,7 +124,7 @@ def main():
     # opt = optimizers.Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=0.0000001)
     # opt = optimizers.Adam(learning_rate=0.0001, beta_1=0.95, beta_2=0.999, epsilon=0.0000001)
     # opt = optimizers.Adadelta(learning_rate=0.1, rho=0.95, epsilon=0.0000001)
-    opt = optimizers.Adadelta(learning_rate=0.1, rho=0.95, epsilon=0.00001)
+    opt = optimizers.Adadelta(learning_rate=0.01, rho=0.95, epsilon=0.00001)
 
     # Define loss function
     loss = losses.BinaryCrossentropy(label_smoothing=0.0)
@@ -140,8 +140,13 @@ def main():
     plt.plot(history.history['accuracy'])
 
     # Print score
-    score = accuracy_score(y_test, model.predict_classes(X_test))
+    y_pred = model.predict_classes(X_test)
+    score = accuracy_score(y_test, y_pred)
     print(score)
+    
+    # Print confusion matrix
+    matrix = confusion_matrix(y_test, y_pred)
+    print(matrix)
 
     # Save model
     saveModel(model, NAME)
