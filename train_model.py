@@ -115,7 +115,7 @@ def main():
     model.add(layers.Flatten())
     model.add(layers.Dense(2048, activation='relu'))
     model.add(layers.Dense(128, activation='relu'))
-    model.add(layers.Dense(1, activation='relu'))
+    model.add(layers.Dense(1, activation='sigmoid'))
     
     model.summary()
 
@@ -127,7 +127,7 @@ def main():
     opt = optimizers.Adadelta(learning_rate=0.01, rho=0.95, epsilon=0.00001)
 
     # Define loss function
-    loss = losses.BinaryCrossentropy(label_smoothing=0.0)
+    loss = losses.BinaryCrossentropy(label_smoothing=0.2)
 
     # Compile the model
     model.compile(optimizer=opt, loss=loss, metrics=['accuracy'])

@@ -18,7 +18,7 @@ import time
 
 
 DIM = (64, 64)
-GPU_ACCELERATED = False
+GPU_ACCELERATED = True
 NAME = 'model'
 
 faceRecModel = 'cnn' if GPU_ACCELERATED else 'hog'
